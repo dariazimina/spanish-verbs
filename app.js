@@ -218,7 +218,8 @@ function displayForm(v,t,p){ return form(v,t,p).replace(/\s+de$/i, ""); }
 function displayInf(v){ return v.inf.replace(/\s*\([^)]*\)/g, "").trim(); }
 const PERSON_PROMPT = ["yo","tú","él/ella/usted","nosotros/nosotras","vosotros/vosotras","ellos/ellas/ustedes"];
 const TIME_PROMPT = {pres:"Presente", pret:"Pretérito Indefinido", fut:"Futuro"};
-function questionText(q){ return `Как будет "${displayInf(q.v)}" (${TIME_PROMPT[q.t]}. ${PERSON_PROMPT[q.p]})?`; }
+function questionText(q){ return `Как будет "${displayInf(q.v)}"?`; }
+function questionHTML(q){ return `<span class="question-main">Как будет "${esc(displayInf(q.v))}"?</span><span class="question-meta">${esc(TIME_PROMPT[q.t])} · ${esc(PERSON_PROMPT[q.p])}</span>`; }
 function normalizedAnswer(value){ return String(value).trim().toLowerCase().replace(/\s+de$/i, ""); }
 
 function newLearn(){
@@ -246,11 +247,11 @@ function renderLearn(){
  const q=state.learn;
  if(!q){el.innerHTML='<div class="card empty">В настройках включи хотя бы один тип глагола и одно время.</div>';return;}
  const main = q.kind==="identify" ? displayForm(q.v,q.t,q.p) : displayInf(q.v);
- const prompt = q.kind==="identify" ? `Что это за форма? (${TIME_PROMPT[q.t]}. ${PERSON_PROMPT[q.p]})` : questionText(q);
+ const prompt = q.kind==="identify" ? `<span class="question-main">Что это за форма?</span>` : questionHTML(q);
  el.innerHTML=`<div class="card quiz-card">
    <div class="word">${esc(main)}</div>
    ${q.kind==="identify" ? translation(q.v,q.t,q.p) : translation(q.v)}
-   <div class="instruction question">${esc(prompt)}</div>
+   <div class="instruction question">${prompt}</div>
    <div class="options">${q.options.map((o,i)=>{
      const isCorrect=o.text===q.correct;
      const isChosen=i===q.chosenIndex;
@@ -281,7 +282,7 @@ function renderReview(){
  el.innerHTML=`<div class="card quiz-card review-card">
    <div class="word">${esc(displayInf(q.v))}</div>
    ${translation(q.v)}
-   <div class="instruction question">${esc(questionText(q))}</div>
+   <div class="instruction question">${questionHTML(q)}</div>
    <input id="answerInput" class="input answer-input ${q.answered?(isCorrect?"input-correct":"input-wrong"):""}" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Твоя форма" ${q.answered?"disabled":""} value="${esc(q.value)}">
    ${q.answered?`<div class="review-result ${isCorrect?"good":"bad"}"><strong>${isCorrect?"Правильно!":"Надо ещё подучить"}</strong>${isCorrect?`<div>${esc(shownTarget)}</div>`:`<div>Правильный ответ: <b>${esc(shownTarget)}</b></div>`}${state.settings.ru?`<div>${esc(ruForm(q.v,q.t,q.p))}</div>`:""}</div><button class="next" id="reviewNext">Далее</button>`:`<button class="next ${q.value.trim()?"":"disabled"}" id="checkBtn">Проверить</button>`}
  </div>`;

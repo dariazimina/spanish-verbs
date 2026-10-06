@@ -93,3 +93,17 @@ h3 { margin-top:24px; }
   .next { margin-top:12px; padding:12px; min-height:48px; }
   .input { padding:13px 14px; }
 }
+
+/* v6 question layout: prompt and tense/person on separate lines */
+.question .question-main,
+.question .question-meta { display:block; }
+.question .question-meta {
+  margin-top:5px;
+  white-space:nowrap;
+  font-size:15px;
+  font-weight:600;
+  color:var(--text);
+}
+@media (max-width:480px) {
+  .question .question-meta { font-size:14px; }
+}
