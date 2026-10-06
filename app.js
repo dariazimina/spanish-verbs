@@ -32,7 +32,7 @@ const EXTRA_VERBS = [
  {inf:"tener",ru:"иметь",type:"irregular",pres:["tengo", "tienes", "tiene", "tenemos", "tenéis", "tienen"],pret:["tuve", "tuviste", "tuvo", "tuvimos", "tuvisteis", "tuvieron"],fut:["tendré", "tendrás", "tendrá", "tendremos", "tendréis", "tendrán"]},
  {inf:"ver",ru:"видеть; смотреть",type:"irregular",pres:["veo", "ves", "ve", "vemos", "veis", "ven"],pret:["vi", "viste", "vio", "vimos", "visteis", "vieron"],fut:["veré", "verás", "verá", "veremos", "veréis", "verán"]},
  {inf:"volver",ru:"возвращаться",type:"irregular",pres:["vuelvo", "vuelves", "vuelve", "volvemos", "volvéis", "vuelven"],pret:["volví", "volviste", "volvió", "volvimos", "volvisteis", "volvieron"],fut:["volveré", "volverás", "volverá", "volveremos", "volveréis", "volverán"]},
- {inf:"acordarse (de)",ru:"помнить; вспоминать",type:"irregular",pres:["me acuerdo de", "te acuerdas de", "se acuerda de", "nos acordamos de", "os acordáis de", "se acuerdan de"],pret:["me acordé de", "te acordaste de", "se acordó de", "nos acordamos de", "os acordasteis de", "se acordaron de"],fut:["me acordaré de", "te acordarás de", "se acordará de", "nos acordaremos de", "os acordaréis de", "se acordarán de"]},
+ {inf:"acordarse",ru:"помнить; вспоминать",type:"irregular",pres:["me acuerdo de", "te acuerdas de", "se acuerda de", "nos acordamos de", "os acordáis de", "se acuerdan de"],pret:["me acordé de", "te acordaste de", "se acordó de", "nos acordamos de", "os acordasteis de", "se acordaron de"],fut:["me acordaré de", "te acordarás de", "se acordará de", "nos acordaremos de", "os acordaréis de", "se acordarán de"]},
  {inf:"acostarse",ru:"ложиться спать",type:"irregular",pres:["me acuesto", "te acuestas", "se acuesta", "nos acostamos", "os acostáis", "se acuestan"],pret:["me acosté", "te acostaste", "se acostó", "nos acostamos", "os acostasteis", "se acostaron"],fut:["me acostaré", "te acostarás", "se acostará", "nos acostaremos", "os acostaréis", "se acostarán"]},
  {inf:"andar",ru:"ходить",type:"irregular",pres:["ando", "andas", "anda", "andamos", "andáis", "andan"],pret:["anduve", "anduviste", "anduvo", "anduvimos", "anduvisteis", "anduvieron"],fut:["andaré", "andarás", "andará", "andaremos", "andaréis", "andarán"]},
  {inf:"aprobar",ru:"сдавать; одобрять",type:"irregular",pres:["apruebo", "apruebas", "aprueba", "aprobamos", "aprobáis", "aprueban"],pret:["aprobé", "aprobaste", "aprobó", "aprobamos", "aprobasteis", "aprobaron"],fut:["aprobaré", "aprobarás", "aprobará", "aprobaremos", "aprobaréis", "aprobarán"]},
@@ -214,6 +214,12 @@ function translation(v,t=null,p=null){
   return `<div class="translation">${esc(value)}</div>`;
 }
 function form(v,t,p){return v[t][p]}
+function displayForm(v,t,p){ return form(v,t,p).replace(/\s+de$/i, ""); }
+function displayInf(v){ return v.inf.replace(/\s*\([^)]*\)/g, "").trim(); }
+const PERSON_PROMPT = ["yo","tú","él/ella/usted","nosotros/nosotras","vosotros/vosotras","ellos/ellas/ustedes"];
+const TIME_PROMPT = {pres:"Presente", pret:"Pretérito Indefinido", fut:"Futuro"};
+function questionText(q){ return `Как будет "${displayInf(q.v)}" (${TIME_PROMPT[q.t]}. ${PERSON_PROMPT[q.p]})?`; }
+function normalizedAnswer(value){ return String(value).trim().toLowerCase().replace(/\s+de$/i, ""); }
 
 function newLearn(){
  const vs=enabledVerbs(), ts=enabledTimes();
@@ -221,39 +227,41 @@ function newLearn(){
  const v=pick(vs), t=pick(ts), p=Math.floor(Math.random()*6);
  const kind=Math.random()<.5 ? "identify" : "choose";
  const correct = kind==="identify" ? `${TIMES[t]} · ${PEOPLE[p]}` : form(v,t,p);
- let options = kind==="identify"
-   ? sample(ts.flatMap(tt => PEOPLE.map(pp => `${TIMES[tt]} · ${pp}`)).filter(x=>x!==correct),3)
-   : sample(vs.flatMap(vv => enabledTimes().flatMap(tt=>vv[tt].map((f,i)=>({f,v:vv,t:tt,p:i})))).filter(x=>x.f!==correct && x.v.inf===v.inf ? true : x.f!==correct),3).map(x=>x.f);
- options.push(correct); options=sample(options,4);
- return {v,t,p,kind,correct,options,answered:false,chosen:null};
+ let options;
+ if(kind==="identify") {
+   options=sample(ts.flatMap(tt=>PEOPLE.map((person,i)=>`${TIMES[tt]} · ${person}`)).filter(x=>x!==correct),3).map(text=>({text}));
+   options.push({text:correct});
+ } else {
+   const pool=vs.flatMap(vv=>enabledTimes().flatMap(tt=>vv[tt].map((f,i)=>({f,v:vv,t:tt,p:i}))));
+   options=sample(pool.filter(x=>x.f!==correct),3).map(x=>({text:x.f}));
+   options.push({text:correct});
+ }
+ options=sample(options,4);
+ return {v,t,p,kind,correct,options,answered:false,chosen:null,chosenIndex:null};
 }
+
 function renderLearn(){
  const el=$("learn");
  if(!state.learn) state.learn=newLearn();
  const q=state.learn;
  if(!q){el.innerHTML='<div class="card empty">В настройках включи хотя бы один тип глагола и одно время.</div>';return;}
- const main = q.kind==="identify" ? form(q.v,q.t,q.p) : q.v.inf;
- const PERSON_PROMPT = ["yo", "tú", "él/ella/usted", "nosotros/nosotras", "vosotros/vosotras", "ellos/ellas/ustedes"];
- const TIME_PROMPT = {pres:"настоящем времени", pret:"прошедшем времени", fut:"будущем времени"};
- const PERSON_DETAIL = [
-   "1-м лице единственного числа (я)",
-   "2-м лице единственного числа (ты)",
-   "3-м лице единственного числа (он/она/Вы)",
-   "1-м лице множественного числа (мы)",
-   "2-м лице множественного числа (вы)",
-   "3-м лице множественного числа (они/Вы)"
- ];
- const prompt = q.kind==="identify" ? "Что это за время и спряжение?" : `Как будет «${q.v.inf}» в ${TIME_PROMPT[q.t]}, ${PERSON_DETAIL[q.p]}?`;
- el.innerHTML=`<div class="card">
-   <div class="meta">${q.kind==="identify" ? "Определи форму" : "Выбери правильную форму"}</div>
+ const main = q.kind==="identify" ? displayForm(q.v,q.t,q.p) : displayInf(q.v);
+ const prompt = q.kind==="identify" ? `Что это за форма? (${TIME_PROMPT[q.t]}. ${PERSON_PROMPT[q.p]})` : questionText(q);
+ el.innerHTML=`<div class="card quiz-card">
    <div class="word">${esc(main)}</div>
-   ${translation(q.v)}
-   <div class="instruction">${esc(prompt)}</div>
-   <div class="options">${q.options.map((o,i)=>`<button class="option ${q.answered?(o===q.correct?"correct":(o===q.chosen?"wrong":"")):""}" data-opt="${i}">${esc(o)}</button>`).join("")}</div>
-   ${q.answered?`<div class="answer ${q.chosen===q.correct?"good":"bad"}"><strong>${q.chosen===q.correct?"Правильно!":"Надо ещё подучить"}</strong>${q.chosen===q.correct?"":`Правильный ответ: <b>${esc(q.correct)}</b>`}${state.settings.ru?`<br>${esc(ruForm(q.v,q.t,q.p))}`:""}</div><button class="next" id="learnNext">Далее</button>`:""}
+   ${q.kind==="identify" ? translation(q.v,q.t,q.p) : translation(q.v)}
+   <div class="instruction question">${esc(prompt)}</div>
+   <div class="options">${q.options.map((o,i)=>{
+     const isCorrect=o.text===q.correct;
+     const isChosen=i===q.chosenIndex;
+     const cls=q.answered?(isCorrect?"correct":(isChosen?"wrong":"")):(isChosen?"selected":"");
+     return `<button class="option ${cls}" data-opt="${i}" ${q.answered?"disabled":""}>${esc(q.kind==="identify"?o.text:o.text.replace(/\s+de$/i,""))}</button>`;
+   }).join("")}</div>
+   <button class="next ${q.answered?"":"disabled"}" id="learnNext">Далее</button>
  </div>`;
- el.querySelectorAll("[data-opt]").forEach(b=>b.onclick=()=>{if(!q.answered){q.answered=true;q.chosen=q.options[+b.dataset.opt];renderLearn()}});
- const next=$("learnNext"); if(next) next.onclick=()=>{state.learn=newLearn();renderLearn()};
+ el.querySelectorAll("[data-opt]").forEach(b=>b.onclick=()=>{if(!q.answered){q.answered=true;q.chosenIndex=+b.dataset.opt;q.chosen=q.options[q.chosenIndex].text;renderLearn()}});
+ const next=$("learnNext");
+ next.onclick=()=>{if(!q.answered)return;state.learn=newLearn();renderLearn()};
 }
 
 function newReview(){
@@ -268,17 +276,17 @@ function renderReview(){
  const q=state.review;
  if(!q){el.innerHTML='<div class="card empty">В настройках включи хотя бы один тип глагола и одно время.</div>';return;}
  const target=form(q.v,q.t,q.p);
- el.innerHTML=`<div class="card">
-   <div class="meta">${esc(TIMES[q.t])} · ${esc(PEOPLE[q.p])}</div>
-   <div class="word">${esc(q.v.inf)}</div>
+ const shownTarget=displayForm(q.v,q.t,q.p);
+ const isCorrect=normalizedAnswer(q.value)===normalizedAnswer(target);
+ el.innerHTML=`<div class="card quiz-card review-card">
+   <div class="word">${esc(displayInf(q.v))}</div>
    ${translation(q.v)}
-   <div class="instruction">Напиши правильную форму</div>
-   <input id="answerInput" class="input" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Твоя форма" ${q.answered?"disabled":""} value="${esc(q.value)}">
-   ${!q.answered?'<button class="next" id="checkBtn">Проверить</button>':''}
-   ${q.answered?`<div class="answer ${q.value.trim().toLowerCase()===target?"good":"bad"}"><strong>${q.value.trim().toLowerCase()===target?"Правильно!":"Надо ещё подучить"}</strong>${q.value.trim().toLowerCase()===target?"":`Правильный ответ: <b>${esc(target)}</b>`}${state.settings.ru?`<br>${esc(ruForm(q.v,q.t,q.p))}`:""}</div><button class="next" id="reviewNext">Далее</button>`:""}
+   <div class="instruction question">${esc(questionText(q))}</div>
+   <input id="answerInput" class="input answer-input ${q.answered?(isCorrect?"input-correct":"input-wrong"):""}" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Твоя форма" ${q.answered?"disabled":""} value="${esc(q.value)}">
+   ${q.answered?`<div class="review-result ${isCorrect?"good":"bad"}"><strong>${isCorrect?"Правильно!":"Надо ещё подучить"}</strong>${isCorrect?`<div>${esc(shownTarget)}</div>`:`<div>Правильный ответ: <b>${esc(shownTarget)}</b></div>`}${state.settings.ru?`<div>${esc(ruForm(q.v,q.t,q.p))}</div>`:""}</div><button class="next" id="reviewNext">Далее</button>`:`<button class="next ${q.value.trim()?"":"disabled"}" id="checkBtn">Проверить</button>`}
  </div>`;
  const input=$("answerInput");
- if(input&&!q.answered){input.focus();input.oninput=()=>q.value=input.value;input.onkeydown=e=>{if(e.key==="Enter")$("checkBtn").click()};$("checkBtn").onclick=()=>{q.value=input.value;q.answered=true;renderReview()}}
+ if(input&&!q.answered){input.focus();input.oninput=e=>{q.value=e.target.value;const b=$("checkBtn");b.classList.toggle("disabled",!q.value.trim())};input.onkeydown=e=>{if(e.key==="Enter"&&q.value.trim())$("checkBtn").click()};$("checkBtn").onclick=()=>{if(!q.value.trim())return;q.answered=true;renderReview()}}
  const next=$("reviewNext");if(next)next.onclick=()=>{state.review=newReview();renderReview()};
 }
 
