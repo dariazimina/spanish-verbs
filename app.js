@@ -219,7 +219,7 @@ function displayInf(v){ return v.inf.replace(/\s*\([^)]*\)/g, "").trim(); }
 const PERSON_PROMPT = ["yo","tú","él/ella/usted","nosotros/nosotras","vosotros/vosotras","ellos/ellas/ustedes"];
 const TIME_PROMPT = {pres:"Presente", pret:"Pretérito Indefinido", fut:"Futuro"};
 function questionText(q){ return `Как будет "${displayInf(q.v)}"?`; }
-function questionHTML(q){ return `<span class="question-main">Как будет "${esc(displayInf(q.v))}"?</span><span class="question-meta">${esc(TIME_PROMPT[q.t])} · ${esc(PERSON_PROMPT[q.p])}</span>`; }
+function questionHTML(q){ return `<span class="question-main">Как будет "${esc(displayInf(q.v))}"</span><span class="question-meta">${esc(TIME_PROMPT[q.t])} · ${esc(PERSON_PROMPT[q.p])}?</span>`; }
 function normalizedAnswer(value){ return String(value).trim().toLowerCase().replace(/\s+de$/i, ""); }
 
 function newLearn(){
@@ -233,9 +233,24 @@ function newLearn(){
    options=sample(ts.flatMap(tt=>PEOPLE.map((person,i)=>`${TIMES[tt]} · ${person}`)).filter(x=>x!==correct),3).map(text=>({text}));
    options.push({text:correct});
  } else {
-   const pool=vs.flatMap(vv=>enabledTimes().flatMap(tt=>vv[tt].map((f,i)=>({f,v:vv,t:tt,p:i}))));
-   options=sample(pool.filter(x=>x.f!==correct),3).map(x=>({text:x.f}));
-   options.push({text:correct});
+   // Distractors must come from the SAME verb. Prefer other tenses first,
+   // then other persons of the same verb/tenses. Never use forms of another verb.
+   const candidates=[];
+   const otherTimes=enabledTimes().filter(tt=>tt!==t);
+   for(const tt of otherTimes){
+     for(let i=0;i<6;i++){
+       const f=displayForm(v,tt,i);
+       if(f!==displayForm(v,t,p) && !candidates.some(x=>x.text===f)) candidates.push({text:f});
+     }
+   }
+   for(const tt of enabledTimes()){
+     for(let i=0;i<6;i++){
+       const f=displayForm(v,tt,i);
+       if(f!==displayForm(v,t,p) && !candidates.some(x=>x.text===f)) candidates.push({text:f});
+     }
+   }
+   options=sample(candidates,3);
+   options.push({text:displayForm(v,t,p)});
  }
  options=sample(options,4);
  return {v,t,p,kind,correct,options,answered:false,chosen:null,chosenIndex:null};
