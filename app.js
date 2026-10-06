@@ -233,7 +233,17 @@ function renderLearn(){
  const q=state.learn;
  if(!q){el.innerHTML='<div class="card empty">В настройках включи хотя бы один тип глагола и одно время.</div>';return;}
  const main = q.kind==="identify" ? form(q.v,q.t,q.p) : q.v.inf;
- const prompt = q.kind==="identify" ? "Что это за время и спряжение?" : `Как будет «${q.v.inf}»?`;
+ const PERSON_PROMPT = ["yo", "tú", "él/ella/usted", "nosotros/nosotras", "vosotros/vosotras", "ellos/ellas/ustedes"];
+ const TIME_PROMPT = {pres:"настоящем времени", pret:"прошедшем времени", fut:"будущем времени"};
+ const PERSON_DETAIL = [
+   "1-м лице единственного числа (я)",
+   "2-м лице единственного числа (ты)",
+   "3-м лице единственного числа (он/она/Вы)",
+   "1-м лице множественного числа (мы)",
+   "2-м лице множественного числа (вы)",
+   "3-м лице множественного числа (они/Вы)"
+ ];
+ const prompt = q.kind==="identify" ? "Что это за время и спряжение?" : `Как будет «${q.v.inf}» в ${TIME_PROMPT[q.t]}, ${PERSON_DETAIL[q.p]}?`;
  el.innerHTML=`<div class="card">
    <div class="meta">${q.kind==="identify" ? "Определи форму" : "Выбери правильную форму"}</div>
    <div class="word">${esc(main)}</div>
