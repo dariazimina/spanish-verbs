@@ -351,7 +351,7 @@ function renderDictionary(){
   <div class="verb-list">${list.length?list.map(v=>`<button class="verb-row" data-verb="${esc(v.inf)}"><b>${esc(v.inf)}</b><span>${state.settings.ru?esc(v.ru):""}</span></button>`).join(""):'<div class="empty">Ничего не найдено</div>'}</div>
  </div>`;
  $("dictSearch").oninput=e=>{state.dictQuery=e.target.value;renderDictionary();const x=$("dictSearch");x.focus();x.setSelectionRange(x.value.length,x.value.length)};
- el.querySelectorAll("[data-letter]").forEach(b=>b.onclick=()=>{state.dictLetter=b.dataset.letter;renderDictionary()});
+ el.querySelectorAll("[data-letter]").forEach(b=>b.onclick=()=>{state.dictLetter=b.dataset.letter;renderDictionary();requestAnimationFrame(()=>window.scrollTo({top:0,left:0,behavior:"instant"}));});
  el.querySelectorAll("[data-verb]").forEach(b=>b.onclick=()=>{state.dictDetail=VERBS.find(v=>v.inf===b.dataset.verb);renderDictionary()});
 }
 function table(v,t){return `<table class="conj-table"><tbody>${v[t].map((f,i)=>`<tr><td>${PEOPLE[i]}</td><td><b>${f}</b></td></tr>`).join("")}</tbody></table>`}

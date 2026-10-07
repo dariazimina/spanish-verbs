@@ -19,3 +19,7 @@ Chrome → меню ⋮ → «Добавить на главный экран» 
 
 ## Обновления
 При обновлении приложения увеличивайте номер CACHE в `sw.js`. В версии v8 старые кэши автоматически удаляются при активации нового Service Worker.
+
+
+## v12
+- Dictionary letter changes reset the page scroll to the top so the first words of the selected letter are visible on mobile.
