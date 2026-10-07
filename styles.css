@@ -116,14 +116,29 @@ h3 { margin-top:24px; }
   .question .question-meta { font-size:16px; }
 }
 
-/* v10: reliable dictionary scrolling on mobile */
+/* v11: dictionary uses the page scroll on mobile.
+   Do not constrain the card height: the browser viewport itself must scroll
+   through the complete list. */
+.dictionary-card {
+  overflow: visible;
+}
+.dictionary-card .verb-list {
+  overflow: visible;
+}
 @media (max-width:480px) {
-  .dictionary-card {
-    max-height: calc(100dvh - 235px);
-    overflow-y: auto;
+  html, body {
+    height: auto;
+    min-height: 100%;
     overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+    overflow-y: auto;
+    touch-action: pan-y;
   }
-  .dictionary-card .verb-list { overflow: visible; }
+  main {
+    min-height: 0;
+    padding-bottom: 40px;
+  }
+  .dictionary-card {
+    max-height: none;
+    overflow: visible;
+  }
 }
