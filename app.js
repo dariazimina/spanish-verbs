@@ -166,6 +166,28 @@ const EXTRA_VERBS = [
 ];
 VERBS.push(...EXTRA_VERBS);
 
+// Additional irregular verbs from the classroom conjugation tables.
+const CLASSROOM_IRREGULAR_VERBS = [
+ {inf:"satisfacer",ru:"удовлетворять",type:"irregular",pres:["satisfago","satisfaces","satisface","satisfacemos","satisfacéis","satisfacen"],pret:["satisfice","satisficiste","satisfizo","satisficimos","satisficisteis","satisficieron"],fut:["satisfaré","satisfarás","satisfará","satisfaremos","satisfaréis","satisfarán"]},
+ {inf:"detener",ru:"останавливать; задерживать",type:"irregular",pres:["detengo","detienes","detiene","detenemos","detenéis","detienen"],pret:["detuve","detuviste","detuvo","detuvimos","detuvisteis","detuvieron"],fut:["detendré","detendrás","detendrá","detendremos","detendréis","detendrán"]},
+ {inf:"caber",ru:"помещаться; вмещаться",type:"irregular",pres:["quepo","cabes","cabe","cabemos","cabéis","caben"],pret:["cupe","cupiste","cupo","cupimos","cupisteis","cupieron"],fut:["cabré","cabrás","cabrá","cabremos","cabréis","cabrán"]}
+];
+VERBS.push(...CLASSROOM_IRREGULAR_VERBS);
+
+// Keep all regular future forms grammatically correct, including reflexive verbs.
+function regularFutureForms(inf){
+  const endings = inf.endsWith("ar")
+    ? ["é","ás","á","emos","éis","án"]
+    : ["é","ás","á","emos","éis","án"];
+  const reflexive = inf.endsWith("se");
+  const base = reflexive ? inf.slice(0,-2) : inf;
+  const pronouns = ["me ","te ","se ","nos ","os ","se "];
+  return endings.map((ending,i) => (reflexive ? pronouns[i] : "") + base + ending);
+}
+for (const v of VERBS) {
+  if (v.type === "regular") v.fut = regularFutureForms(v.inf);
+}
+
 
 
 const RU_FORMS = {
@@ -192,6 +214,9 @@ const RU_FORMS = {
   sentir:{pres:["чувствую","чувствуешь","чувствует","чувствуем","чувствуете","чувствуют"],pret:["чувствовал/чувствовала","чувствовал/чувствовала","чувствовал/чувствовала","чувствовали","чувствовали","чувствовали"],fut:["буду чувствовать","будешь чувствовать","будет чувствовать","будем чувствовать","будете чувствовать","будут чувствовать"]},
   dormir:{pres:["сплю","спишь","спит","спим","спите","спят"],pret:["спал/спала","спал/спала","спал/спала","спали","спали","спали"],fut:["буду спать","будешь спать","будет спать","будем спать","будете спать","будут спать"]},
   recoger:{pres:["забираю/собираю","забираешь/собираешь","забирает/собирает","забираем/собираем","забираете/собираете","забирают/собирают"],pret:["забрал/забрала","забрал/забрала","забрал/забрала","забрали","забрали","забрали"],fut:["буду забирать/собирать","будешь забирать/собирать","будет забирать/собирать","будем забирать/собирать","будете забирать/собирать","будут забирать/собирать"]}
+  ,satisfacer:{pres:["удовлетворяю","удовлетворяешь","удовлетворяет","удовлетворяем","удовлетворяете","удовлетворяют"],pret:["удовлетворил/удовлетворила","удовлетворил/удовлетворила","удовлетворил/удовлетворила","удовлетворили","удовлетворили","удовлетворили"],fut:["буду удовлетворять","будешь удовлетворять","будет удовлетворять","будем удовлетворять","будете удовлетворять","будут удовлетворять"]}
+  ,detener:{pres:["останавливаю","останавливаешь","останавливает","останавливаем","останавливаете","останавливают"],pret:["остановил/остановила","остановил/остановила","остановил/остановила","остановили","остановили","остановили"],fut:["буду останавливать","будешь останавливать","будет останавливать","будем останавливать","будете останавливать","будут останавливать"]}
+  ,caber:{pres:["помещаюсь","помещаешься","помещается","помещаемся","помещаетесь","помещаются"],pret:["поместился/поместилась","поместился/поместилась","поместился/поместилась","поместились","поместились","поместились"],fut:["помещусь","поместишься","поместится","поместимся","поместитесь","поместятся"]}
 };
 function ruForm(v,t,p){ return RU_FORMS[v.inf]?.[t]?.[p] || v.ru; }
 
@@ -219,7 +244,7 @@ function displayInf(v){ return v.inf.replace(/\s*\([^)]*\)/g, "").trim(); }
 const PERSON_PROMPT = ["yo","tú","él/ella/usted","nosotros/nosotras","vosotros/vosotras","ellos/ellas/ustedes"];
 const TIME_PROMPT = {pres:"Presente", pret:"Pretérito Indefinido", fut:"Futuro"};
 function questionText(q){ return `Как будет "${displayInf(q.v)}"?`; }
-function questionHTML(q){ return `<span class="question-main">Как будет "${esc(displayInf(q.v))}"</span><span class="question-meta">${esc(TIME_PROMPT[q.t])} · ${esc(PERSON_PROMPT[q.p])}?</span>`; }
+function questionHTML(q){ return `<span class="question-main">Как будет "${esc(displayInf(q.v))}"?</span><span class="question-meta">${esc(TIME_PROMPT[q.t])} · ${esc(PERSON_PROMPT[q.p])}</span>`; }
 function normalizedAnswer(value){ return String(value).trim().toLowerCase().replace(/\s+de$/i, ""); }
 
 function newLearn(){
