@@ -332,6 +332,7 @@ function renderReview(){
 }
 
 function renderDictionary(){
+ // Dictionary always contains the complete VERBS dataset. Learning settings only affect Learn/Repeat.
  const el=$("dictionary");
  if(state.dictDetail){
    const v=state.dictDetail;
@@ -343,7 +344,7 @@ function renderDictionary(){
  }
  const letters=["A","B","C","D","E","F","G","H","I","J","L","M","N","O","P","Q","R","S","T","V"];
  const q=state.dictQuery.toLowerCase();
- let list=enabledVerbs().filter(v=>(!q||v.inf.includes(q)||v.ru.toLowerCase().includes(q))&&(!state.dictLetter||v.inf[0].toUpperCase()===state.dictLetter));
+ let list=VERBS.filter(v=>(!q||v.inf.includes(q)||v.ru.toLowerCase().includes(q))&&(!state.dictLetter||v.inf[0].toUpperCase()===state.dictLetter));
  list.sort((a,b)=>a.inf.localeCompare(b.inf, "es", {sensitivity:"base"}));
  el.innerHTML=`<div class="card dictionary-card">
   <input class="input search" id="dictSearch" placeholder="Поиск глагола или перевода" value="${esc(state.dictQuery)}">
