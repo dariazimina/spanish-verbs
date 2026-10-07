@@ -345,7 +345,7 @@ function renderDictionary(){
  const q=state.dictQuery.toLowerCase();
  let list=enabledVerbs().filter(v=>(!q||v.inf.includes(q)||v.ru.toLowerCase().includes(q))&&(!state.dictLetter||v.inf[0].toUpperCase()===state.dictLetter));
  list.sort((a,b)=>a.inf.localeCompare(b.inf, "es", {sensitivity:"base"}));
- el.innerHTML=`<div class="card">
+ el.innerHTML=`<div class="card dictionary-card">
   <input class="input search" id="dictSearch" placeholder="Поиск глагола или перевода" value="${esc(state.dictQuery)}">
   <div class="alpha"><button data-letter="">Все</button>${letters.map(l=>`<button data-letter="${l}" class="${state.dictLetter===l?"active":""}">${l}</button>`).join("")}</div>
   <div class="verb-list">${list.length?list.map(v=>`<button class="verb-row" data-verb="${esc(v.inf)}"><b>${esc(v.inf)}</b><span>${state.settings.ru?esc(v.ru):""}</span></button>`).join(""):'<div class="empty">Ничего не найдено</div>'}</div>
@@ -378,5 +378,7 @@ function renderSettings(){
  $("settingsContent").innerHTML=items.map(([k,a,b])=>`<div class="setting"><div class="setting-text"><b>${a}</b><small>${b}</small></div><label class="switch"><input type="checkbox" data-setting="${k}" ${state.settings[k]?"checked":""}><span class="slider"></span></label></div>`).join("");
  $("settingsContent").querySelectorAll("[data-setting]").forEach(x=>x.onchange=()=>{state.settings[x.dataset.setting]=x.checked;save();state.learn=null;state.review=null;renderSettings();render()});
 }
-if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+if("serviceWorker" in navigator) {
+ navigator.serviceWorker.register("sw.js").then(reg=>reg.update()).catch(()=>{});
+}
 render();

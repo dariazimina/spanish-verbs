@@ -40,7 +40,8 @@ main { max-width:720px; margin:auto; padding:14px 18px 40px; }
 .alpha { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 16px; }
 .alpha button { border:0; background:#e9ebef; border-radius:8px; padding:7px 9px; }
 .alpha button.active { background:var(--accent); color:#fff; }
-.verb-list { display:grid; gap:8px; }
+.verb-list { display:grid; gap:8px; overflow:visible; }
+.dictionary-card { overflow:visible; }
 .verb-row { display:flex; justify-content:space-between; align-items:center; padding:14px; background:#fff; border:1px solid var(--border); border-radius:12px; }
 .verb-row span:last-child { color:var(--muted); }
 .conj-table { width:100%; border-collapse:collapse; margin-top:10px; }
@@ -82,6 +83,8 @@ h3 { margin-top:24px; }
 .review-result.bad { background:var(--bad-bg); color:var(--bad); }
 .review-result strong { display:block; margin-bottom:3px; }
 @media (max-width:480px) {
+  html, body { min-height:100%; }
+  body { overflow-y:auto; -webkit-overflow-scrolling:touch; }
   main { padding:10px 12px 24px; }
   .tabs { margin-bottom:12px; }
   .card.quiz-card { padding:16px; border-radius:18px; }
@@ -111,4 +114,16 @@ h3 { margin-top:24px; }
 @media (max-width:480px) {
   .question .question-main,
   .question .question-meta { font-size:16px; }
+}
+
+/* v10: reliable dictionary scrolling on mobile */
+@media (max-width:480px) {
+  .dictionary-card {
+    max-height: calc(100dvh - 235px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  .dictionary-card .verb-list { overflow: visible; }
 }
