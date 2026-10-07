@@ -23,3 +23,10 @@ Chrome → меню ⋮ → «Добавить на главный экран» 
 
 ## v12
 - Dictionary letter changes reset the page scroll to the top so the first words of the selected letter are visible on mobile.
+
+
+### v16
+- Добавлены визуальные пометки «неправильный» для irregular-глаголов в заданиях, списке словаря и карточке глагола.
+
+### v14
+Added 136 verbs found in the A2 exercise workbook exercises, including regular, reflexive and irregular/stem-changing verbs.

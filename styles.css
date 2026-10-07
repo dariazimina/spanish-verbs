@@ -142,3 +142,16 @@ h3 { margin-top:24px; }
     overflow: visible;
   }
 }
+
+/* v15: irregular verb markers */
+.word-line { display:flex; flex-direction:column; align-items:center; gap:5px; margin:22px 0 4px; }
+.word-line .word-text { font-size:38px; font-weight:800; word-break:break-word; text-align:center; }
+.irregular-badge { display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; width:19px; height:19px; padding:0; border-radius:50%; background:#e53935; color:#fff; border:0; font-size:13px; line-height:1; font-weight:900; font-family:Arial,sans-serif; cursor:help; box-sizing:border-box; }
+.verb-name { display:flex; align-items:center; gap:8px; min-width:0; }
+.verb-name .irregular-badge { flex:none; }
+@media (max-width:480px) {
+  .word-line { margin:2px 0 2px; gap:4px; }
+  .word-line .word-text { font-size:31px; }
+  .verb-name { gap:6px; }
+  .verb-row .irregular-badge { width:18px; height:18px; font-size:12px; }
+}
